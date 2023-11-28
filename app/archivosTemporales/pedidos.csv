@@ -1,0 +1,10 @@
+4,14,1,"listo para servir",Alex,QLMCN,listo,1_Alex.jpeg,activo
+5,0,1,"listo para servir",Juan,LNBUB,"15 minutos",http://example.com/foto1.jpg,activo
+6,0,2,entregado,Maria,XQMAC,"10 minutos",http://example.com/foto2.jpg,activo
+7,0,3,"listo para servir",Pedro,BXLEE,"20 minutos",http://example.com/foto3.jpg,activo
+8,0,1,"en preparacion",Juan,RKWEB,"15 minutos",http://example.com/foto1.jpg,activo
+9,0,2,"en preparacion",Maria,KBQAP,"10 minutos",http://example.com/foto2.jpg,activo
+10,0,3,entregado,Pedro,RDEWH,"20 minutos",http://example.com/foto3.jpg,activo
+11,1,14,"en preparacion",Juan,QYSKP,15,http://example.com/foto1.jpg,activo
+12,2,14,listo,Maria,RISQE,10,http://example.com/foto2.jpg,activo
+13,3,14,"en espera",Pedro,LFLDF,20,http://example.com/foto3.jpg,activo
