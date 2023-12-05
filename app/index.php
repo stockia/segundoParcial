@@ -25,6 +25,8 @@ require_once './middlewares/TransactionLogMiddleware.php';
 require_once './controllers/ClienteController.php';
 require_once './controllers/ReservaController.php';
 require_once './controllers/UsuarioController.php';
+require_once './controllers/LogsController.php';
+require_once './controllers/LogsReservasController.php';
 
 // Load ENV
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
@@ -112,5 +114,10 @@ $app->group('/reservas', function (RouteCollectorProxy $group) use ($authMiddlew
     ->add($authMiddlewareRecepcionistaCliente);
 });
 
+$app->group('/downloads', function (RouteCollectorProxy $group) {
+  $group->get('/csv', \LogsController::class . ':DescargarComoCSV');
+  $group->get('/pdf', \LogsReservasController::class . ':DescargarComoPDF');
+});
+  
 
 $app->run();

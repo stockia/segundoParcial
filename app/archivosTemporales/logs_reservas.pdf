@@ -1,0 +1,5 @@
+1 2023-12-02 unknown POST /reservas
+2 2023-12-02 unknown POST http://localhost:666/reservas
+3 2023-12-02 alex POST http://localhost:666/reservas
+4 2023-12-02 alex PUT http://localhost:666/reservas/5
+5 2023-12-05 beta GET http://localhost:666/reservas
