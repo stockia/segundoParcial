@@ -40,7 +40,8 @@ class ClienteController extends Cliente implements IApiUsable {
                 
         $resultado = $cliente->InsertarCliente();
                 
-        $response->getBody()->write(json_encode($resultado));
+        // $response->getBody()->write(json_encode($resultado));
+        $response->getBody()->write(json_encode(['mensaje' => 'Cliente creado']));
         return $response->withHeader('Content-Type', 'application/json');
     }
 

@@ -27,8 +27,6 @@ class ReservaController extends Reserva implements IApiUsable {
         $datos = $request->getParsedBody();
 
         $reserva = new Reserva();
-        // $Reserva->id = $datos['id'];
-        // $reserva->tipoCliente = $datos['tipoCliente'];
         $reserva->numeroCliente = $datos['numeroCliente'];
         $reserva->fechaEntrada = $datos['fechaEntrada'];
         $reserva->fechaSalida = $datos['fechaSalida'];
@@ -39,11 +37,11 @@ class ReservaController extends Reserva implements IApiUsable {
 
         if ($resultado === true) {
             $response->getBody()->write(json_encode(['mensaje' => 'Reserva creada']));
+
         } else {
             $response->getBody()->write(json_encode(['error' => 'No se pudo crear la reserva']));
         }
                 
-        // $response->getBody()->write(json_encode($resultado));
         return $response->withHeader('Content-Type', 'application/json');
     }
 
@@ -130,6 +128,7 @@ class ReservaController extends Reserva implements IApiUsable {
 
         $resultado = $reserva->AjustarReserva($datos['motivo']);
         if ($resultado === true) {
+            // $this->GuardarLog($id);
             $response->getBody()->write(json_encode(['mensaje' => 'Reserva ajustada']));
         } else {
             $response->getBody()->write(json_encode(['error' => 'No se pudo ajustar la reserva']));
@@ -232,6 +231,5 @@ class ReservaController extends Reserva implements IApiUsable {
             return $response->withStatus(400)->withHeader('Content-Type', 'application/json');
         }
     }
-    
 }
 ?>

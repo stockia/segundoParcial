@@ -19,9 +19,12 @@ require_once './utils/AutentificadorJWT.php';
 
 require_once './middlewares/LoggerMiddleware.php';
 require_once './middlewares/AuthMiddleware.php';
+require_once './middlewares/AccessLogMiddleware.php';
+require_once './middlewares/TransactionLogMiddleware.php';
 
 require_once './controllers/ClienteController.php';
 require_once './controllers/ReservaController.php';
+require_once './controllers/UsuarioController.php';
 
 // Load ENV
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
@@ -36,59 +39,77 @@ $app->addErrorMiddleware(true, true, true);
 // Add parse body
 $app->addBodyParsingMiddleware();
 
-// $authMiddlewareSocio = new AuthMiddleware('socio');
-// $authMiddlewareMozo = new AuthMiddleware('mozo');
+// $authMiddlewareGerente = new AuthMiddleware('gerente');
+$authMiddlewareGerente = new AuthMiddleware(['gerente']);
+$authMiddlewareRecepcionistaCliente = new AuthMiddleware(['recepcionista', 'cliente']);
+$authMiddlewareCliente = new AuthMiddleware('cliente');
 
 // Routes
+$app->add(new AccessLogMiddleware());
 $app->post('/login', \LoginController::class . ':Login');
 
-$app->group('/clientes', function (RouteCollectorProxy $group) {
-  $group->get('[/]', \ClienteController::class . ':TraerTodos');
-  $group->get('/{id}', \ClienteController::class . ':TraerUno');
-  $group->post('[/]', \ClienteController::class . ':CargarUno');
-  $group->put('/{id}', \ClienteController::class . ':ModificarUno');
-  $group->delete('/{id}', \ClienteController::class . ':BorrarUno');
+$app->group('/usuarios', function (RouteCollectorProxy $group) {
+  $group->get('[/]', \UsuarioController::class . ':TraerTodos');
+  $group->get('/{id}', \UsuarioController::class . ':TraerUno');
+  $group->post('[/]', \UsuarioController::class . ':CargarUno');
+  $group->put('/{id}', \UsuarioController::class . ':ModificarUno');
+  $group->delete('/{id}', \UsuarioController::class . ':BorrarUno');
 });
 
-// $app->group('/reservas', function (RouteCollectorProxy $group) {
-//   // $group->get('/downloadCSV', \PedidoController::class . ':DescargarComoCSV');
-//   // $group->post('/uploadCSV', \PedidoController::class . ':CargarDesdeCSV');
-//   $group->post('[/]', \ReservaController::class . ':CargarUno');
-//   $group->get('[/]', \ReservaController::class . ':TraerTodos');
-//   $group->get('/cliente', \ReservaController::class . ':BuscarPorCliente');
-//   $group->get('/entre-fechas', \ReservaController::class . ':BuscarPorRangoDeFechas');
-//   $group->get('/fecha', \ReservaController::class . ':BuscarPorFechaParticular');
-//   $group->get('/habitacion', \ReservaController::class . ':BuscarPorTipoHabitacion');
-//   $group->put('/{id}', \ReservaController::class . ':AjustarReservaUna');
-//   $group->delete('/{id}', ReservaController::class . ':BorrarUno');
+$app->group('/clientes', function (RouteCollectorProxy $group) use ($authMiddlewareGerente) {
+  $group->get('[/]', \ClienteController::class . ':TraerTodos');
+  $group->get('/{id}', \ClienteController::class . ':TraerUno');
+  $group->post('[/]', \ClienteController::class . ':CargarUno')
+    ->add($authMiddlewareGerente);
+  $group->put('/{id}', \ClienteController::class . ':ModificarUno');
+  $group->delete('/{id}', \ClienteController::class . ':BorrarUno')
+    ->add($authMiddlewareGerente);
+});
 
-//   // consultas punto 10
-//   $group->get('/cancelacion/completa', \ReservaController::class . ':BuscarCancelacionCompleta');
-//   $group->get('/cancelacion/{numeroCliente}', \ReservaController::class . ':BuscarCancelacionPorCliente');
-//   $group->get('/cancelacion/entre-fechas', \ReservaController::class . ':BuscarCancelacionEntreFechas');
-//   $group->get('/cancelacion/tipo-cliente', \ReservaController::class . ':BuscarPorTipoCliente');
-//   $group->get('/operaciones/{numeroCliente}', \ReservaController::class . ':BuscarOperacionesPorUsuario');
-//   $group->get('/modalidad', \ReservaController::class . ':BuscarPorModalidad');
-// });
-$app->group('/reservas', function (RouteCollectorProxy $group) {
-  // $group->get('/downloadCSV', \PedidoController::class . ':DescargarComoCSV');
-  // $group->post('/uploadCSV', \PedidoController::class . ':CargarDesdeCSV');
-  $group->post('[/]', \ReservaController::class . ':CargarUno');
-  $group->get('[/]', \ReservaController::class . ':TraerTodos');
-  $group->get('/cliente', \ReservaController::class . ':BuscarPorCliente');
-  $group->get('/entre-fechas', \ReservaController::class . ':BuscarPorRangoDeFechas');
-  $group->get('/fecha', \ReservaController::class . ':BuscarPorFechaParticular');
-  $group->get('/habitacion', \ReservaController::class . ':BuscarPorTipoHabitacion');
-  $group->put('/{id}', \ReservaController::class . ':AjustarReservaUna');
-  $group->delete('/{id}', \ReservaController::class . ':BorrarUno');
+$app->group('/reservas', function (RouteCollectorProxy $group) use ($authMiddlewareRecepcionistaCliente) {
+  $group->post('[/]', \ReservaController::class . ':CargarUno')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->get('[/]', \ReservaController::class . ':TraerTodos')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->get('/cliente', \ReservaController::class . ':BuscarPorCliente')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->get('/entre-fechas', \ReservaController::class . ':BuscarPorRangoDeFechas')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->get('/fecha', \ReservaController::class . ':BuscarPorFechaParticular')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->get('/habitacion', \ReservaController::class . ':BuscarPorTipoHabitacion')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->put('/{id}', \ReservaController::class . ':AjustarReservaUna')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->delete('/{id}', \ReservaController::class . ':BorrarUno')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
 
-  // Rutas actualizadas para evitar la colisión
-  $group->get('/cancelacion/completa', \ReservaController::class . ':BuscarCancelacionCompleta');
-  $group->get('/cancelacion/cliente/{numeroCliente}', \ReservaController::class . ':BuscarCancelacionPorCliente');
-  $group->get('/cancelacion/entre-fechas', \ReservaController::class . ':BuscarCancelacionEntreFechas');
-  $group->get('/cancelacion/tipo-cliente', \ReservaController::class . ':BuscarPorTipoCliente');
-  $group->get('/operaciones/{numeroCliente}', \ReservaController::class . ':BuscarOperacionesPorUsuario');
-  $group->get('/modalidad', \ReservaController::class . ':BuscarPorModalidad');
+  $group->get('/cancelacion/completa', \ReservaController::class . ':BuscarCancelacionCompleta')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->get('/cancelacion/cliente/{numeroCliente}', \ReservaController::class . ':BuscarCancelacionPorCliente')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->get('/cancelacion/entre-fechas', \ReservaController::class . ':BuscarCancelacionEntreFechas')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->get('/cancelacion/tipo-cliente', \ReservaController::class . ':BuscarPorTipoCliente')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->get('/operaciones/{numeroCliente}', \ReservaController::class . ':BuscarOperacionesPorUsuario')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
+  $group->get('/modalidad', \ReservaController::class . ':BuscarPorModalidad')
+    ->add(new TransactionLogMiddleware())
+    ->add($authMiddlewareRecepcionistaCliente);
 });
 
 

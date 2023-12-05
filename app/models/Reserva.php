@@ -9,47 +9,6 @@ class Reserva {
     public $importeTotal;
     public $estado;
 
-    // public function InsertarReserva() {
-    //     $objAccesoDatos = AccesoDatos::dameUnObjetoAcceso();
-    //     $estado = "activo";
-    //     $response = "";
-
-    //     $consulta = $objAccesoDatos->RetornarConsulta(
-    //         "INSERT INTO reservas (tipoCliente, numeroCliente, fechaEntrada, fechaSalida, tipoHabitacion, importeTotal, estado) 
-    //         VALUES (:tipoCliente, :numeroCliente, :fechaEntrada, :fechaSalida, :tipoHabitacion, :importeTotal, :estado)"
-    //     );
-
-    //     $consulta->bindValue(':tipoCliente', $this->tipoCliente, PDO::PARAM_STR);
-    //     $consulta->bindValue(':numeroCliente', $this->numeroCliente, PDO::PARAM_INT);
-    //     $consulta->bindValue(':fechaEntrada', $this->fechaEntrada, PDO::PARAM_STR);
-    //     $consulta->bindValue(':fechaSalida', $this->fechaSalida, PDO::PARAM_STR);
-    //     $consulta->bindValue(':tipoHabitacion', $this->tipoHabitacion, PDO::PARAM_STR);
-    //     $consulta->bindValue(':importeTotal', $this->importeTotal, PDO::PARAM_STR);
-    //     $consulta->bindValue(':estado', $estado, PDO::PARAM_STR);
-
-    //     $consulta->execute();
-
-    //     $id = $objAccesoDatos->RetornarUltimoIdInsertado();
-
-    //     if (isset($_FILES['foto']) && $_FILES['foto']['error'] == UPLOAD_ERR_OK) {
-    //         $extension = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-
-    //         $nuevoNombreArchivo = $this->tipoCliente . $this->numeroCliente . $id . "." . $extension;
-    
-    //         $rutaDestino = __DIR__ . '/../ImagenesDeReservas2023/' . $nuevoNombreArchivo;
-    
-    //         if (move_uploaded_file($_FILES['foto']['tmp_name'], $rutaDestino)) {
-    //             $response = true;
-    //         } else {
-    //             return false;
-    //         }
-    //     } else {
-    //         return false;
-    //     }
-
-    //     return $response;
-    // }
-
     public function InsertarReserva() {
         $objAccesoDatos = AccesoDatos::dameUnObjetoAcceso();
         $estado = "activo";
@@ -131,25 +90,6 @@ class Reserva {
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Reserva');
     }
 
-    // public function AjustarReserva() {
-    //     $objAccesoDatos = AccesoDatos::dameUnObjetoAcceso();
-    //     $estado = "ajustada";
-
-    //     $consulta = $objAccesoDatos->RetornarConsulta(
-    //         "UPDATE reservas
-    //         SET importeTotal = :importeTotal, 
-    //             estado = :estado
-    //         WHERE id = :id"
-    //     );
-
-    //     $consulta->bindValue(':importeTotal', $this->importeTotal, PDO::PARAM_STR);
-    //     $consulta->bindValue(':estado', $estado, PDO::PARAM_STR);
-    //     $consulta->bindValue(':id', $this->id, PDO::PARAM_INT);
-
-    //     $consulta->execute();
-
-    //     return $response;
-    // }
     public function AjustarReserva($motivo) {
         $objAccesoDatos = AccesoDatos::dameUnObjetoAcceso();
         $estado = "ajustada";
@@ -397,5 +337,21 @@ class Reserva {
         }
 
         return $consulta->fetchAll(PDO::FETCH_CLASS, 'Reserva');
+    }
+
+    public static function GuardarLog($idReserva) {
+        $objAccesoDatos = AccesoDatos::dameUnObjetoAcceso();
+        $fechaHora = date('Y-m-d H:i:s');
+
+        $consulta = $objAccesoDatos->RetornarConsulta(
+           "INSERT INTO log_reservas (numeroReserva, usuario, fecha)
+            VALUES (:numeroReserva, :usuario, :fecha)"
+        );
+
+        $consulta->bindValue(':numeroReserva', $idReserva, PDO::PARAM_INT);
+        // $consulta->bindValue(':usuario', $this->usuario, PDO::PARAM_STR);
+        $consulta->bindValue(':fecha', $fechaHora, PDO::PARAM_STR);
+
+        $consulta->execute();
     }
 }

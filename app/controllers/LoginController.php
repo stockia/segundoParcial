@@ -16,7 +16,7 @@ class LoginController {
 
         if ($usuario) {
             $rol = $usuario->rol;
-            $datosParaToken = array('rol' => $rol);
+            $datosParaToken = array('rol' => $rol, 'username' => $username);
             $token = AutentificadorJWT::CrearToken($datosParaToken);
             $response->getBody()->write(json_encode(['token' => $token]));
 
